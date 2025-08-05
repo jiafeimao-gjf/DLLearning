@@ -88,7 +88,11 @@ dataset = load_dataset("wikitext", "wikitext-2-raw-v1", split="train[:1%]")  # �
 
 # 定义分词函数，将文本转换为模型可接受的 token，并做截断和填充
 def tokenize_function(example):
-    return tokenizer(example["text"], truncation=True, padding="max_length", max_length=64)
+    # 对文本进行分词
+    tokens = tokenizer(example["text"], truncation=True, padding="max_length", max_length=64)
+    # 添加 labels 字段，内容与 input_ids 相同
+    tokens["labels"] = tokens["input_ids"].copy()
+    return tokens
 
 # 对整个数据集进行分词处理
 tokenized_dataset = dataset.map(tokenize_function, batched=True)
@@ -110,6 +114,16 @@ trainer = Trainer(
 
 # 开始训练
 trainer.train()
+```
+- 训练模型日志
+```bash
+python distilgpt2_train_model.py
+Map: 100%|█████████████████████████████████████████████████████████████████| 367/367 [00:00<00:00, 20017.29 examples/s]
+  0%|                                                                                           | 0/92 [00:00<?, ?it/s]/opt/miniconda3/envs/py313/lib/python3.10/site-packages/torch/utils/data/dataloader.py:683: UserWarning: 'pin_memory' argument is set as true but not supported on MPS now, then device pinned memory won't be used.
+  warnings.warn(warn_msg)
+`loss_type=None` was set in the config but it is unrecognised.Using the default loss: `ForCausalLMLoss`.
+{'train_runtime': 14.1789, 'train_samples_per_second': 25.884, 'train_steps_per_second': 6.489, 'train_loss': 1.6261384383491848, 'epoch': 1.0}
+100%|██████████████████████████████████████████████████████████████████████████████████| 92/92 [00:14<00:00,  6.49it/s]
 ```
 
 [ResNet-50模型训练demo](./ResNet-50_train_demo.py)

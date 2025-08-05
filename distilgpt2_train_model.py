@@ -15,8 +15,10 @@ dataset = load_dataset("wikitext", "wikitext-2-raw-v1", split="train[:1%]")  # �
 
 # 定义分词函数，将文本转换为模型可接受的 token，并做截断和填充
 def tokenize_function(example):
-    return tokenizer(example["text"], truncation=True, padding="max_length", max_length=64)
-
+    tokens = tokenizer(example["text"], truncation=True, padding="max_length", max_length=64)
+    # 添加 labels 字段，内容与 input_ids 相同
+    tokens["labels"] = tokens["input_ids"].copy()
+    return tokens
 # 对整个数据集进行分词处理
 tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
@@ -32,8 +34,7 @@ training_args = TrainingArguments(
 trainer = Trainer(
     model=model,                           # 训练的模型
     args=training_args,                    # 训练参数
-    train_dataset=tokenized_dataset,       # 训练数据集
-    labels=tokenized_dataset["input_ids"],  # 标签为输入的 token ids
+    train_dataset=tokenized_dataset       # 训练数据集
 )
 
 # 开始训练
